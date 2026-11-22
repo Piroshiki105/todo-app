@@ -46,12 +46,14 @@ spec:
             initialDelaySeconds: 3
             periodSeconds: 5
           resources:
+            # Autopilot は requests/limits を補正する（CPU 100m に対しメモリ最小約 103Mi）。
+            # 差分が出ないよう、最初から requests = limits で下限を満たす値にしている。
             requests:
               cpu: 100m
-              memory: 64Mi
+              memory: 128Mi
             limits:
-              cpu: 500m
-              memory: 256Mi
+              cpu: 100m
+              memory: 128Mi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
