@@ -1,0 +1,7 @@
+# デフォルト設定のまま利用する。変更したい項目だけ argo-cd: 配下に追記する。
+# 例:
+#   argo-cd:
+#     server:
+#       service:
+#         type: LoadBalancer
+argo-cd: {}

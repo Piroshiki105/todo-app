@@ -1,0 +1,2 @@
+# helm dependency update で取得されるチャートの tgz（Chart.lock から再取得できる）
+argocd/install/charts/

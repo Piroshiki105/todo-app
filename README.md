@@ -104,12 +104,18 @@ sed -i "s/PROJECT_ID/$PROJECT_ID/g" k8s/*.yaml
 
 ## 4. ArgoCD でデプロイ
 
-ArgoCD がクラスタに未導入の場合:
+ArgoCD がクラスタに未導入の場合は、`argocd/install/` の Helm チャート
+（公式 `argo/argo-cd` チャートをデフォルト設定で包んだもの）で導入する:
 
 ```bash
-kubectl create namespace argocd
-kubectl apply -n argocd --server-side -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+helm dependency update argocd/install
+helm upgrade --install argocd argocd/install -n argocd --create-namespace
+kubectl -n argocd rollout status deploy/argocd-server
 ```
+
+設定を変えたい場合は `argocd/install/values.yaml` の `argo-cd:` 配下に追記する。
+`kubectl apply -f install.yaml` など別の方法で導入済みの場合は、Helm の所有権競合で
+失敗するため、先にその ArgoCD を削除する。
 
 Application を登録する:
 

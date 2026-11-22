@@ -1,0 +1,9 @@
+apiVersion: v2
+name: argocd-install
+description: ArgoCD 本体をインストールするラッパーチャート（公式 argo-cd チャートをデフォルト設定で利用）
+type: application
+version: 0.1.0
+dependencies:
+  - name: argo-cd
+    version: 10.18.2   # ArgoCD v3.6.2
+    repository: https://argoproj.github.io/argo-helm

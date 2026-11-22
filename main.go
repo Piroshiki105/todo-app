@@ -96,6 +96,7 @@ func (s *server) readyz(w http.ResponseWriter, r *http.Request) {
 	iter := s.db.Single().Query(ctx, spanner.NewStatement("SELECT 1"))
 	defer iter.Stop()
 	if _, err := iter.Next(); err != nil {
+		log.Printf("readyz: spanner check failed: %v", err)
 		http.Error(w, "spanner not ready", http.StatusServiceUnavailable)
 		return
 	}
