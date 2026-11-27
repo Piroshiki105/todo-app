@@ -9,7 +9,10 @@ GKE + Cloud Spanner で動く簡単な TODO アプリ（Go）。デプロイは 
 ├── schema.sql                Spanner の DDL
 ├── Dockerfile
 ├── k8s/                      素の Kubernetes マニフェスト（ArgoCD が同期）
-└── argocd/application.yaml   ArgoCD Application
+├── argocd/
+│   ├── install/              ArgoCD 本体の Helm チャート（公式チャートをデフォルト設定で利用）
+│   └── application.yaml      ArgoCD Application
+└── scripts/                  up.sh / down.sh（立ち上げと削除の自動化）
 ```
 
 ## 1. ローカルで動かす（Spanner エミュレータ）
@@ -137,6 +140,28 @@ kubectl -n todo-app port-forward svc/todo-app 8080:80
 ```
 
 外部公開が必要な場合は、Ingress（または Gateway）を別途追加する。
+
+## 6. 立ち上げと片付けの自動化（scripts/）
+
+使わない間の課金（Spanner インスタンスと GKE クラスタ）を止めるため、
+削除と再作成をスクリプトにしてある。
+
+```bash
+./scripts/up.sh      # 立ち上げ（目安 10〜15 分）
+./scripts/down.sh    # 削除（確認プロンプトあり。-y で省略）
+```
+
+| スクリプト | 内容 |
+|---|---|
+| `scripts/env.sh` | 共通設定。`PROJECT_ID` `REGION` `CLUSTER` などは環境変数で上書き可（例: `CLUSTER=foo ./scripts/up.sh`） |
+| `scripts/up.sh` | API 有効化 → サービスアカウント → Spanner（インスタンス・DB・権限）→ GKE Autopilot 作成 → Workload Identity → ArgoCD（Helm）→ `argocd/application.yaml` 適用 → デプロイ待機 |
+| `scripts/down.sh` | GKE クラスタと Spanner インスタンスを削除。**Spanner のデータは消える** |
+
+- `up.sh` は何度実行しても安全（存在するものは作り直さず、足りないものだけを補う）。
+- Workload Identity の設定は、Identity Pool がクラスタ作成後に作られるため、クラスタの後に行う。
+- 削除後も残るもの: Artifact Registry のイメージ、サービスアカウント、Git リポジトリ（いずれもほぼ無料）。
+  `up.sh` はイメージが push 済みであることを前提にしている（手順 2 参照）。
+- `down.sh` の後は、`gcloud container clusters list` と `gcloud spanner instances list` が空であることを確認する。
 
 ## 注意
 
